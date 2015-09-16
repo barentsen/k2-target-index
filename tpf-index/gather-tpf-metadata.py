@@ -1,5 +1,6 @@
 """Grab the metadata from a set of TPF files and save it into a csv table.
 """
+import os
 import time
 from collections import OrderedDict
 
@@ -8,11 +9,11 @@ from astropy.io import fits
 
 
 # Configuration constants
-INPUT_FN = "k2-c01-tpf-urls.txt"
-OUTPUT_FN = "k2-c01-tpf-metadata.csv"
-MAX_ATTEMPTS = 10
-SLEEP_BETWEEN_ATTEMPTS = 10
-IGNORE_SHORT_CADENCE = True
+INPUT_FN = "k2-c04-tpf-urls.txt"
+OUTPUT_FN = "k2-c04-tpf-metadata.csv"
+MAX_ATTEMPTS = 50
+SLEEP_BETWEEN_ATTEMPTS = 30
+IGNORE_SHORT_CADENCE = False
 
 
 class TPFFile(object):
@@ -88,6 +89,12 @@ if __name__ == "__main__":
                         out.write(tpf.get_csv_header() + "\n")
                     out.write(tpf.get_csv_row() + "\n")
                     out.flush()
+                    # Hack: make sure the fits file is gone
+                    # AstroPy v1.0.1 doesn't seem to do so
+                    try:
+                        os.unlink(tpf.fits.filename())
+                    except Exception:
+                        pass
                 except Exception as e:
                     log.error("{}: {}".format(fn, e))
     out.close()
