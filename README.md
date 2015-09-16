@@ -6,9 +6,13 @@ and data analysis for NASA's K2 mission***
 ### Contents
 
 This repository contains the following sets of metadata:
- * `target-pixel-files`: tables detailing the Target Pixel Files (TPF)
- that are served by MAST, including some basic metadata (equatorial coordinates, pixel positions, channel number, etc).
- * `footprints`: equatorial coordinates of the CCD corners for all K2 ccampaigns, e.g. helpful for selecting targets.
+ * `tpf-index`: tables detailing the Target Pixel Files (TPF)
+ that are served by MAST, including some basic metadata 
+ (equatorial & pixel coordinates, channel numbers, etc)
+ for each TPF file.
+ * `footprint-coordinates`: equatorial coordinates of the CCD corners 
+ for all K2 campaigns. This is useful for selecting targets
+ or visualizing where K2 has pointed.
 
 ### Disclaimer
 
