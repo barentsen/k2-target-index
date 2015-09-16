@@ -29,7 +29,7 @@ class TPFFile(object):
         attempt = 1
         while attempt <= MAX_ATTEMPTS:
             try:
-                self.fits = fits.open(path, cache=False)
+                self.fits = fits.open(path, cache=False, memmap=False)
                 attempt = 99
             except Exception as e:
                 if attempt == MAX_ATTEMPTS:
