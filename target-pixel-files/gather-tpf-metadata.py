@@ -8,8 +8,8 @@ from astropy.io import fits
 
 
 # Configuration constants
-INPUT_FN = "test.txt"
-OUTPUT_FN = "tpf-metadata.csv"
+INPUT_FN = "k2-c01-tpf-urls.txt"
+OUTPUT_FN = "k2-c01-tpf-metadata.csv"
 MAX_ATTEMPTS = 10
 SLEEP_BETWEEN_ATTEMPTS = 10
 IGNORE_SHORT_CADENCE = True
