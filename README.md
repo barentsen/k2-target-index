@@ -22,3 +22,10 @@ The files and scripts you find here are provided
 on a best-effort basis to aid target selection and data analysis.
 Use at your own risk!
  
+### Contributing
+
+Members of the scientific community are encouraged
+to consider sharing useful products which may
+benefit the scientific exploitation of K2.
+Please open a pull request!
+
