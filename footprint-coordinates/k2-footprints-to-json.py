@@ -12,6 +12,8 @@ from astropy import log
 from K2fov import fov
 from K2fov.K2onSilicon import getRaDecRollFromFieldnum
 
+from astropy.coordinates import SkyCoord
+
 """Configuration constants"""
 # Which channels are no longer in use?
 # Note: K2fov defines the FGS chips as "channels" 85-88
@@ -44,7 +46,7 @@ def get_footprint(campaign):
 
 if __name__ == "__main__":
 
-    for campaign in range(11):
+    for campaign in range(14):
         # Obtain the metadata
         start, stop, comments = get_metadata(campaign)
         ra_bore, dec_bore, roll, corners = get_footprint(campaign)
@@ -60,13 +62,18 @@ if __name__ == "__main__":
             channel_name = "{}".format(ch)
             ra = corners[idx, 3][0]
             dec = corners[idx, 4][0]
+            crd = SkyCoord(ra, dec, unit='deg')
+            glon = crd.galactic.l
+            glat = crd.galactic.b
             #coords = [[ra[i], dec[i]] for i in [0, 1, 2, 3, 0]]
             #channels[channel_name] = coords
             channels[channel_name] = OrderedDict([
                                         ('module', str(mdl)),
                                         ('output', str(out)),
                                         ('corners_ra', list(ra)),
-                                        ('corners_dec', list(dec))
+                                        ('corners_dec', list(dec)),
+                                        ('corners_glon', list(glon.value)),
+                                        ('corners_glat', list(glat.value)),
                                         ])
 
         # Add the metadata to the JSON dictionary
