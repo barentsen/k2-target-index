@@ -2,15 +2,19 @@
 """
 import os
 import time
+from urllib import request
 from collections import OrderedDict
 
 from astropy import log
 from astropy.io import fits
 
 
+log.setLevel("DEBUG")
+
 # Configuration constants
 INPUT_FN = "k2-c04-tpf-urls.txt"
 OUTPUT_FN = "k2-c04-tpf-metadata.csv"
+TMPDIR = "/tmp/"
 MAX_ATTEMPTS = 50
 SLEEP_BETWEEN_ATTEMPTS = 30
 IGNORE_SHORT_CADENCE = False
@@ -26,11 +30,10 @@ class TPFFile(object):
     """
     def __init__(self, path):
         self.path = path.strip()
-        log.info("Attempting to open {}".format(path))
         attempt = 1
         while attempt <= MAX_ATTEMPTS:
             try:
-                self.fits = fits.open(path, cache=False, memmap=False)
+                self.fits = fits.open(path, memmap=True)
                 attempt = 99
             except Exception as e:
                 if attempt == MAX_ATTEMPTS:
@@ -75,26 +78,44 @@ class TPFFile(object):
         return ",".join([str(meta[kw]) for kw in meta])
 
 
+def download_file(url, local_filename, chunksize=16*1024):
+    """Download a large file straight to disk."""
+    with request.urlopen(url) as response, open(local_filename, 'wb') as f:
+        while True:
+            chunk = response.read(chunksize)
+            if not chunk:
+                break
+            f.write(chunk)
+
+
 if __name__ == "__main__":
     with open(OUTPUT_FN, "w") as out:
-        with open(INPUT_FN, "r") as filenames:
-            for idx, fn in enumerate(filenames.readlines()):
+        with open(INPUT_FN, "r") as urls:
+            for idx, url in enumerate(urls.readlines()):
+                url = url.strip()
                 # Ignore short cadence files?
-                if IGNORE_SHORT_CADENCE and "spd-targ" in fn:
+                if IGNORE_SHORT_CADENCE and "spd-targ" in url:
                     continue
                 # Try opening the file and adding a csv row
                 try:
-                    tpf = TPFFile(fn)
+                    log.debug("Downloading {}".format(url))
+                    tmp_fn = os.path.join(TMPDIR, os.path.basename(url))
+                    download_file(url, tmp_fn)
+
+                    log.debug("Reading {}".format(tmp_fn))
+                    tpf = TPFFile(tmp_fn)
                     if idx == 0:
                         out.write(tpf.get_csv_header() + "\n")
                     out.write(tpf.get_csv_row() + "\n")
                     out.flush()
-                    # Hack: make sure the fits file is gone
-                    # AstroPy v1.0.1 doesn't seem to do so
+                except Exception as e:
+                    log.error("{}: {}".format(url, e))
+                finally:
+                    # Ensure the temporary file is deleted
+                    log.debug("Removing {}".format(tmp_fn))
                     try:
-                        os.unlink(tpf.fits.filename())
+                        os.unlink(tmp_fn)
                     except Exception:
                         pass
-                except Exception as e:
-                    log.error("{}: {}".format(fn, e))
+
     out.close()
