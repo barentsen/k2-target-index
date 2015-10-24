@@ -1,4 +1,4 @@
-""""Crawls the K2 archive to build a list of all TPF files.
+""""Crawls the K2 archive to create a list of all TPF files.
 
 Author: Geert Barentsen
 """
