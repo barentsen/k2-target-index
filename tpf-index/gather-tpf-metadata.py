@@ -2,8 +2,11 @@
 """
 import os
 import time
-from urllib import request
 from collections import OrderedDict
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 
 from astropy import log
 from astropy.io import fits
@@ -80,7 +83,8 @@ class TPFFile(object):
 
 def download_file(url, local_filename, chunksize=16*1024):
     """Download a large file straight to disk."""
-    with request.urlopen(url) as response, open(local_filename, 'wb') as f:
+    response = urlopen(url)
+    with open(local_filename, 'wb') as f:
         while True:
             chunk = response.read(chunksize)
             if not chunk:
