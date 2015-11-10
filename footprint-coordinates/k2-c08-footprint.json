@@ -1,11 +1,11 @@
 {
   "campaign": 8,
   "start": "2016-01-03",
-  "stop": "2016-03-26",
+  "stop": "2016-03-23",
   "ra": 16.3379975,
   "dec": 5.2623459,
   "roll": -157.3538761,
-  "comments": "Uranus",
+  "comments": "Uranus, IC1613",
   "channels": {
     "1": {
       "module": "2",

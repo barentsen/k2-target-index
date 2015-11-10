@@ -1,11 +1,11 @@
 {
   "campaign": 9,
   "start": "2016-04-07",
-  "stop": "2016-07-06",
+  "stop": "2016-07-02",
   "ra": 270.3544823,
   "dec": -21.7798098,
   "roll": 0.4673417,
-  "comments": "Galactic Center, Baades Window, M21, M18, M25, M8",
+  "comments": "Galactic Center, Baades Window, M21, M18, M25, M8, Earth, Mars",
   "channels": {
     "1": {
       "module": "2",

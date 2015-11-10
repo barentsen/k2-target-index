@@ -1,11 +1,11 @@
 {
   "campaign": 7,
-  "start": "2015-10-06",
-  "stop": "2015-12-29",
+  "start": "2015-10-03",
+  "stop": "2015-12-26",
   "ra": 287.8285066139854,
   "dec": -23.360018153291808,
   "roll": -172.78037532313485,
-  "comments": "Near Galactic Center, NGC 6717",
+  "comments": "Near Galactic Center, NGC 6717, Pluto",
   "channels": {
     "1": {
       "module": "2",

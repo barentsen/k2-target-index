@@ -46,7 +46,7 @@ def get_footprint(campaign):
 
 if __name__ == "__main__":
 
-    for campaign in range(14):
+    for campaign in range(18):
         # Obtain the metadata
         start, stop, comments = get_metadata(campaign)
         ra_bore, dec_bore, roll, corners = get_footprint(campaign)
@@ -89,6 +89,9 @@ if __name__ == "__main__":
                     ])
 
         # Finally, write the JSON file
-        output_fn = "k2-c{:02d}-footprint.json".format(campaign)
+        if campaign > 13:
+            output_fn = "k2-c{:02d}-footprint-proposed.json".format(campaign)
+        else:
+            output_fn = "k2-c{:02d}-footprint.json".format(campaign)
         log.info("Writing {}".format(output_fn))
         json.dump(output, open(output_fn, "w"), indent=2)
