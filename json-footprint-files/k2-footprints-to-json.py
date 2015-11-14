@@ -16,10 +16,11 @@ from astropy.coordinates import SkyCoord
 
 """Configuration constants"""
 # Which channels are no longer in use?
-# Note: K2fov defines the FGS chips as "channels" 85-88
+# Note: K2fov defines the FGS chips as "channels" 85-88; we ignore these
 CHANNELS_TO_IGNORE = [5, 6, 7, 8, 17, 18, 19, 20,
                       85, 86, 87, 88]
 CAMPAIGNS = Table.read("k2-campaigns.csv")
+START_OF_PRELIMINARY_CAMPAIGNS = 14
 
 
 def get_metadata(campaign):
@@ -46,7 +47,7 @@ def get_footprint(campaign):
 
 if __name__ == "__main__":
 
-    for campaign in range(18):
+    for campaign in range(len(CAMPAIGNS)):
         # Obtain the metadata
         start, stop, comments = get_metadata(campaign)
         ra_bore, dec_bore, roll, corners = get_footprint(campaign)
@@ -59,14 +60,12 @@ if __name__ == "__main__":
             idx = np.where(corners[::, 2] == ch)
             mdl = int(corners[idx, 0][0][0])
             out = int(corners[idx, 1][0][0])
-            channel_name = "{}".format(ch)
+            channel_name = "{}".format(ch)  # JSON requires keys to be strings
             ra = corners[idx, 3][0]
             dec = corners[idx, 4][0]
             crd = SkyCoord(ra, dec, unit='deg')
             glon = crd.galactic.l
             glat = crd.galactic.b
-            #coords = [[ra[i], dec[i]] for i in [0, 1, 2, 3, 0]]
-            #channels[channel_name] = coords
             channels[channel_name] = OrderedDict([
                                         ('module', str(mdl)),
                                         ('output', str(out)),
@@ -89,8 +88,8 @@ if __name__ == "__main__":
                     ])
 
         # Finally, write the JSON file
-        if campaign > 13:
-            output_fn = "k2-c{:02d}-footprint-proposed.json".format(campaign)
+        if campaign >= START_OF_PRELIMINARY_CAMPAIGNS:
+            output_fn = "k2-c{:02d}-footprint-preliminary.json".format(campaign)
         else:
             output_fn = "k2-c{:02d}-footprint.json".format(campaign)
         log.info("Writing {}".format(output_fn))
