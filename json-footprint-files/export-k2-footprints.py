@@ -1,6 +1,4 @@
-"""Save the footprints of all K2 campaigns as JSON files.
-
-"""
+"""Export the channel corner coordinates of K2 campaigns to JSON/CSV files."""
 import json
 from collections import OrderedDict
 
@@ -8,6 +6,7 @@ import numpy as np
 
 from astropy.table import Table
 from astropy import log
+from astropy.utils.console import ProgressBar
 
 from K2fov import fov
 from K2fov.K2onSilicon import getRaDecRollFromFieldnum
@@ -47,7 +46,12 @@ def get_footprint(campaign):
 
 if __name__ == "__main__":
 
-    for campaign in range(len(CAMPAIGNS)):
+    tbl = []
+    tbl_prelim = []
+    json_dict = OrderedDict([])
+    json_dict_prelim = OrderedDict([])
+
+    for campaign in ProgressBar(range(len(CAMPAIGNS))):
         # Obtain the metadata
         start, stop, comments = get_metadata(campaign)
         ra_bore, dec_bore, roll, corners = get_footprint(campaign)
@@ -74,23 +78,53 @@ if __name__ == "__main__":
                                         ('corners_glon', list(glon.value)),
                                         ('corners_glat', list(glat.value)),
                                         ])
+            tbl_row = {
+                      "campaign": campaign,
+                      "start": start,
+                      "stop": stop,
+                      "channel": ch,
+                      "module": mdl,
+                      "output": out,
+                  }
+            for corner_idx in range(4):
+                tbl_row["ra{}".format(corner_idx)] = ra[corner_idx]
+                tbl_row["dec{}".format(corner_idx)] = dec[corner_idx]
 
         # Add the metadata to the JSON dictionary
-        output = OrderedDict([
-                    ("campaign", campaign),
-                    ("start", start),
-                    ("stop", stop),
-                    ("ra", ra_bore),
-                    ("dec", dec_bore),
-                    ("roll", roll),
-                    ("comments", comments),
-                    ("channels", channels)
-                    ])
+        campaign_dict = OrderedDict([
+                                    ("campaign", campaign),
+                                    ("start", start),
+                                    ("stop", stop),
+                                    ("ra", ra_bore),
+                                    ("dec", dec_bore),
+                                    ("roll", roll),
+                                    ("comments", comments),
+                                    ("channels", channels)
+                                    ])
 
-        # Finally, write the JSON file
         if campaign >= START_OF_PRELIMINARY_CAMPAIGNS:
-            output_fn = "k2-c{:02d}-footprint-preliminary.json".format(campaign)
+            json_dict_prelim["c{}".format(campaign)] = campaign_dict
+            tbl_prelim.append(tbl_row)
         else:
-            output_fn = "k2-c{:02d}-footprint.json".format(campaign)
-        log.info("Writing {}".format(output_fn))
-        json.dump(output, open(output_fn, "w"), indent=2)
+            json_dict["c{}".format(campaign)] = campaign_dict
+            tbl.append(tbl_row)
+
+    # Write the results to disk
+    output_fn = "k2-footprint.json"
+    log.info("Writing {}".format(output_fn))
+    json.dump(json_dict, open(output_fn, "w"), indent=2)
+
+    output_fn = "k2-footprint-proposed.json"
+    log.info("Writing {}".format(output_fn))
+    json.dump(json_dict_prelim, open(output_fn, "w"), indent=2)
+
+    # Also save a csv table
+    names = ["campaign", "start", "stop", "channel", "module", "output",
+             "ra0", "dec0", "ra1", "dec1", "ra2", "dec2", "ra3", "dec3"]
+    output_fn = "k2-footprint.csv"
+    log.info("Writing {}".format(output_fn))
+    Table(tbl, names=names).write(output_fn, format="ascii.csv")
+
+    output_fn = "k2-footprint-proposed.csv"
+    log.info("Writing {}".format(output_fn))
+    Table(tbl_prelim, names=names).write(output_fn, format="ascii.csv")
