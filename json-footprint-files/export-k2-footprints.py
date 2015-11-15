@@ -90,6 +90,11 @@ if __name__ == "__main__":
                 tbl_row["ra{}".format(corner_idx)] = ra[corner_idx]
                 tbl_row["dec{}".format(corner_idx)] = dec[corner_idx]
 
+            if campaign >= START_OF_PRELIMINARY_CAMPAIGNS:
+                tbl_prelim.append(tbl_row)
+            else:
+                tbl.append(tbl_row)
+
         # Add the metadata to the JSON dictionary
         campaign_dict = OrderedDict([
                                     ("campaign", campaign),
@@ -104,10 +109,8 @@ if __name__ == "__main__":
 
         if campaign >= START_OF_PRELIMINARY_CAMPAIGNS:
             json_dict_prelim["c{}".format(campaign)] = campaign_dict
-            tbl_prelim.append(tbl_row)
         else:
             json_dict["c{}".format(campaign)] = campaign_dict
-            tbl.append(tbl_row)
 
     # Write the results to disk
     output_fn = "k2-footprint.json"
