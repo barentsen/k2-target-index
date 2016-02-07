@@ -16,7 +16,8 @@ from astropy.io import fits
 log.setLevel("DEBUG")
 
 # Configuration constants
-TMPDIR = "/tmp/"  # Must have enough space to store large short-cadence files
+DATA_STORE = None  # Local directory containing a mirror of MAST TPF files?
+TMPDIR = "/tmp/"   # Location to download temporary files from MAST if needed
 MAX_ATTEMPTS = 50  # How many times do we try to obtain & open a file?
 SLEEP_BETWEEN_ATTEMPTS = 30  # seconds
 IGNORE_SHORT_CADENCE = False
@@ -176,4 +177,4 @@ if __name__ == "__main__":
         campaign = int(sys.argv[1])
         input_fn = "intermediate-data/k2-c{:02d}-tpf-urls.txt".format(campaign)
         output_fn = "intermediate-data/k2-c{:02d}-tpf-metadata.csv-tmp".format(campaign)
-        write_metadata_table(input_fn, output_fn, data_store=None)
+        write_metadata_table(input_fn, output_fn, data_store=DATA_STORE)
