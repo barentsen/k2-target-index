@@ -1,6 +1,7 @@
-"""Grab the metadata from a set of TPF files and save it into a csv table.
+"""Harvests a K2 Campaign's target pixel file metadata from MAST.
 """
 import os
+import sys
 import time
 from collections import OrderedDict
 try:
@@ -15,24 +16,29 @@ from astropy.io import fits
 log.setLevel("DEBUG")
 
 # Configuration constants
-INPUT_FN = "k2-c04-tpf-urls.txt"
-OUTPUT_FN = "k2-c04-tpf-metadata.csv"
-TMPDIR = "/tmp/"
-MAX_ATTEMPTS = 50
-SLEEP_BETWEEN_ATTEMPTS = 30
+TMPDIR = "/tmp/"  # Must have enough space to store large short-cadence files
+MAX_ATTEMPTS = 50  # How many times do we try to obtain & open a file?
+SLEEP_BETWEEN_ATTEMPTS = 30  # seconds
 IGNORE_SHORT_CADENCE = False
 
 
-class TPFFile(object):
+class TargetPixelFile(object):
     """Represent a Target Pixel File (TPF) as obtained from the MAST archive.
 
     Parameters
     ----------
     path : str
         Path or url to the tpf file.
+
+    url : str, optional
+        Public URL of the file, to be stored as metadata.
+        (Defaults to the value of `path`.)
     """
-    def __init__(self, path):
+    def __init__(self, path, url=None):
         self.path = path.strip()
+        self.url = url
+        if url is None:
+            self.url = self.path
         attempt = 1
         while attempt <= MAX_ATTEMPTS:
             try:
@@ -49,24 +55,39 @@ class TPFFile(object):
                 attempt += 1
 
     def header(self, kw, ext=0):
-        """Returns the FITS header for the desired extension."""
-        return self.fits[ext].header[kw]
+        """Returns the FITS header keyword for a specified extension.
+
+        Returns the empty string if a keyword is Undefined or non-existant.
+        """
+        try:
+            value = self.fits[ext].header[kw]
+        except KeyError:  # Keyword does not exist
+            return ""
+        if isinstance(value, fits.Undefined):  # Keyword undefined
+            return ""
+        return value
 
     def get_metadata(self):
-        """Returns a dictionary containing the metadata we care about."""
+        """Returns a dictionary containing only the metadata we care about."""
         meta = OrderedDict()
-        for kw in ["OBJECT", "KEPLERID", "CHANNEL", "MODULE", "OUTPUT",
-                   "CAMPAIGN", "OBSMODE", "RA_OBJ", "DEC_OBJ", "KEPMAG"]:
+        meta["filename"] = os.path.basename(self.url)
+        meta["url"] = self.url
+        filesize_mb = os.path.getsize(self.path) / 1048576.  # MB
+        meta["filesize"] = "{:.1f}".format(filesize_mb)
+        for kw in ["OBJECT", "KEPLERID", "OBSMODE", "CAMPAIGN",
+                   "CHANNEL", "MODULE", "OUTPUT",
+                   "RA_OBJ", "DEC_OBJ", "KEPMAG"]:
             meta[kw] = self.header(kw)
-        for kw in ["LC_START", "LC_END", "GAIN", "READNOIS"]:
+        meta["cadenceno_start"] = self.fits[1].data["CADENCENO"][0]
+        meta["cadenceno_end"] = self.fits[1].data["CADENCENO"][-1]
+        for kw in ["LC_START", "LC_END", "GAIN", "READNOIS", "MEANBLCK",
+                   "CDPP3_0", "CDPP6_0", "CDPP12_0"]:
             meta[kw] = self.header(kw, ext=1)
+        meta["npix"] = (self.fits[2].data > 0).sum()  # No of pixels downlinked
         for kw in ["NAXIS1", "NAXIS2", "CRPIX1", "CRPIX2", "CRVAL1", "CRVAL2",
                    "CDELT1", "CDELT2", "PC1_1", "PC1_2", "PC2_1", "PC2_2",
                    "CRVAL1P", "CRVAL2P"]:
             meta[kw] = self.header(kw, ext=2)
-        meta["cadenceno_begin"] = self.fits[1].data["CADENCENO"][0]
-        meta["cadenceno_end"] = self.fits[1].data["CADENCENO"][-1]
-        meta["path"] = self.path
         return meta
 
     def get_csv_header(self):
@@ -92,9 +113,21 @@ def download_file(url, local_filename, chunksize=16*1024):
             f.write(chunk)
 
 
-if __name__ == "__main__":
-    with open(OUTPUT_FN, "w") as out:
-        with open(INPUT_FN, "r") as urls:
+def write_metadata_table(input_fn, output_fn):
+    """
+    Parameters
+    ----------
+    input_fn : str
+        Path to a text file listing the URLs of all the target pixel files
+        to be analyzed.
+
+    output_fn : str
+        Path to the csv file that will be created.  If the file already exists,
+        it will be overwritten.
+    """
+    # Main routine: download target pixel fiels & produce the metadata table
+    with open(output_fn, "w") as out:
+        with open(input_fn, "r") as urls:
             for idx, url in enumerate(urls.readlines()):
                 url = url.strip()
                 # Ignore short cadence files?
@@ -107,7 +140,7 @@ if __name__ == "__main__":
                     download_file(url, tmp_fn)
 
                     log.debug("Reading {}".format(tmp_fn))
-                    tpf = TPFFile(tmp_fn)
+                    tpf = TargetPixelFile(tmp_fn, url=url)
                     if idx == 0:
                         out.write(tpf.get_csv_header() + "\n")
                     out.write(tpf.get_csv_row() + "\n")
@@ -121,5 +154,15 @@ if __name__ == "__main__":
                         os.unlink(tmp_fn)
                     except Exception:
                         pass
-
     out.close()
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        log.error("Provide the campaign number as the first and only argument.")
+        sys.exit(1)
+    else:
+        campaign = int(sys.argv[1])
+        input_fn = "k2-c{:02d}-tpf-urls.txt".format(campaign)
+        output_fn = "tmp/k2-c{:02d}-tpf-metadata.csv".format(campaign)
+        write_metadata_table(input_fn, output_fn)
