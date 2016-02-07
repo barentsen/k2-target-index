@@ -113,7 +113,7 @@ def download_file(url, local_filename, chunksize=16*1024):
             f.write(chunk)
 
 
-def write_metadata_table(input_fn, output_fn):
+def write_metadata_table(input_fn, output_fn, data_store=None):
     """
     Parameters
     ----------
@@ -124,6 +124,11 @@ def write_metadata_table(input_fn, output_fn):
     output_fn : str
         Path to the csv file that will be created.  If the file already exists,
         it will be overwritten.
+
+    data_store : str, optional
+        Path to a local directory where the contents of the
+        `archive.stsci.edu/pub/k2/target_pixel_files` are mirrored.
+        If `None` then all data will be downloaded.  (Default: None.) 
     """
     # Main routine: download target pixel fiels & produce the metadata table
     with open(output_fn, "w") as out:
@@ -135,12 +140,17 @@ def write_metadata_table(input_fn, output_fn):
                     continue
                 # Try opening the file and adding a csv row
                 try:
-                    log.debug("Downloading {}".format(url))
-                    tmp_fn = os.path.join(TMPDIR, os.path.basename(url))
-                    download_file(url, tmp_fn)
+                    tmp_download = False
+                    if data_store:
+                        path = url.replace("http://archive.stsci.edu/missions/k2/target_pixel_files", data_store)
+                    else:
+                        log.debug("Downloading {}".format(url))
+                        path = os.path.join(TMPDIR, os.path.basename(url))
+                        download_file(url, path)
+                        tmp_download = True
 
-                    log.debug("Reading {}".format(tmp_fn))
-                    tpf = TargetPixelFile(tmp_fn, url=url)
+                    log.debug("Reading {}".format(path))
+                    tpf = TargetPixelFile(path, url=url)
                     if idx == 0:
                         out.write(tpf.get_csv_header() + "\n")
                     out.write(tpf.get_csv_row() + "\n")
@@ -149,11 +159,12 @@ def write_metadata_table(input_fn, output_fn):
                     log.error("{}: {}".format(url, e))
                 finally:
                     # Ensure the temporary file is deleted
-                    log.debug("Removing {}".format(tmp_fn))
-                    try:
-                        os.unlink(tmp_fn)
-                    except Exception:
-                        pass
+                    if tmp_download:
+                        log.debug("Removing {}".format(path))
+                        try:
+                            os.unlink(path)
+                        except Exception as e:
+                            log.error("Could not delete {}: {}".format(url, e))
     out.close()
 
 
@@ -164,5 +175,5 @@ if __name__ == "__main__":
     else:
         campaign = int(sys.argv[1])
         input_fn = "intermediate-data/k2-c{:02d}-tpf-urls.txt".format(campaign)
-        output_fn = "intermediate-data/k2-c{:02d}-tpf-metadata.csv".format(campaign)
-        write_metadata_table(input_fn, output_fn)
+        output_fn = "intermediate-data/k2-c{:02d}-tpf-metadata.csv-tmp".format(campaign)
+        write_metadata_table(input_fn, output_fn, data_store=None)
