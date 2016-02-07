@@ -1,15 +1,7 @@
-# K2 Metadata
+# K2 Target Index
 
-***Metadata to aid the analysis of data from NASA's K2 mission***
+***A user-friendly list of all the target pixel files and their properties.***
 
-### Contents
-
-This repository contains:
- * `tpf-index`: tables detailing the Target Pixel Files (TPF)
- that are served by MAST, including some basic metadata 
- (coordinates, channel numbers, etc) on each TPF file.
-
-### Disclaimer
-
-The contents of this repository are not part of the
-official data products of the K2 mission.
+This repository provides a list of the filenames, urls, and properties
+of all the K2 Target Pixel Files (TPF) that are available
+in the [data archive at MAST](https://archive.stsci.edu/pub/k2/target_pixel_files/).
