@@ -100,7 +100,7 @@ class KeplerArchiveCrawler(object):
 # Main execution
 if __name__ == '__main__':
     for campaign in [0]:
-        output_fn = 'k2-c{:02d}-tpf-urls.txt'.format(campaign)
+        output_fn = 'intermediate-data/k2-c{:02d}-tpf-urls.txt'.format(campaign)
         c = KeplerArchiveCrawler('http://archive.stsci.edu/missions/k2/'
                                  'target_pixel_files/c{}'.format(campaign))
         c.crawl(output_fn)

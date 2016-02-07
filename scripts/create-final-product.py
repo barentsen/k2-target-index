@@ -16,8 +16,8 @@ log = logging.getLogger(__name__)
 log.setLevel("INFO")
 
 
-CSV_FILENAME = "k2-target-pixel-files.csv"
-SQLITE_FILENAME = "k2-target-pixel-files.db"
+CSV_FILENAME = "../k2-target-pixel-files.csv"
+SQLITE_FILENAME = "../k2-target-pixel-files.db"
 
 
 if __name__ == "__main__":

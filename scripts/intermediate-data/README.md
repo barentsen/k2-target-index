@@ -1,0 +1,1 @@
+This directory contains per-campaign lists of TPF urls and metadata.
