@@ -164,5 +164,5 @@ if __name__ == "__main__":
     else:
         campaign = int(sys.argv[1])
         input_fn = "k2-c{:02d}-tpf-urls.txt".format(campaign)
-        output_fn = "tmp/k2-c{:02d}-tpf-metadata.csv".format(campaign)
+        output_fn = "k2-c{:02d}-tpf-metadata.csv".format(campaign)
         write_metadata_table(input_fn, output_fn)
