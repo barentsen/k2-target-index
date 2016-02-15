@@ -1,8 +1,4 @@
-"""Creates an SQLite database detailing all the K2 target pixel files.
-
-TODO
-----
-* Add an index to the sqlite table?
+"""Export a CSV and SQLite database detailing all the K2 target pixel files.
 """
 import glob
 import logging
@@ -10,11 +6,10 @@ import sqlite3
 
 import pandas as pd
 
-
 log = logging.getLogger(__name__)
 log.setLevel("INFO")
 
-
+# Output filenames
 CSV_FILENAME = "../k2-target-pixel-files.csv"
 SQLITE_FILENAME = "../k2-target-pixel-files.db"
 
