@@ -193,7 +193,13 @@ if __name__ == "__main__":
         log.error("Provide the campaign number as the first and only argument.")
         sys.exit(1)
     else:
-        campaign = int(sys.argv[1])
-        input_fn = "intermediate-data/k2-c{:02d}-tpf-urls.txt".format(campaign)
-        output_fn = "intermediate-data/k2-c{:02d}-tpf-metadata.csv".format(campaign)
-        write_metadata_table(input_fn, output_fn)
+        if sys.argv[1] == "all":
+            campaigns = range(0, 6)
+        else:
+            campaigns = [int(sys.argv[1])]
+
+        for campaign in campaigns:
+            log.info("Now indexing campaign {}".format(campaign))
+            input_fn = "intermediate-data/k2-c{:02d}-tpf-urls.txt".format(campaign)
+            output_fn = "intermediate-data/k2-c{:02d}-tpf-metadata.csv".format(campaign)
+            write_metadata_table(input_fn, output_fn)
