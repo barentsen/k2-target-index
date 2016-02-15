@@ -1,4 +1,7 @@
 """Harvests a K2 Campaign's target pixel file metadata from MAST.
+
+Note that we avoid accessing "fits.open(fn)[1].data", as it would make
+astropy load all the data into memory if the file is gzipped. 
 """
 import os
 import sys
