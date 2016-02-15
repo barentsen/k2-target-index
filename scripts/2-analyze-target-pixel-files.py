@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import multiprocessing
 from collections import OrderedDict
 try:
     from urllib.request import urlopen
@@ -11,12 +12,14 @@ except ImportError:
 
 from astropy import log
 from astropy.io import fits
+from astropy.utils.console import ProgressBar
 
 
-log.setLevel("DEBUG")
+log.setLevel("INFO")
 
 # Configuration constants
-DATA_STORE = None  # Local directory containing a mirror of MAST TPF files?
+# Local directory containing a mirror of MAST TPF files:
+DATA_STORE = "/media/gb/kdata/k2/target_pixel_files"
 TMPDIR = "/tmp/"   # Location to download temporary files from MAST if needed
 MAX_ATTEMPTS = 50  # How many times do we try to obtain & open a file?
 SLEEP_BETWEEN_ATTEMPTS = 30  # seconds
@@ -75,10 +78,11 @@ class TargetPixelFile(object):
         meta["url"] = self.url
         filesize_mb = os.path.getsize(self.path) / 1048576.  # MB
         meta["filesize"] = "{:.1f}".format(filesize_mb)
-        for kw in ["OBJECT", "KEPLERID", "OBSMODE", "CAMPAIGN",
+        for kw in ["OBJECT", "KEPLERID", "OBSMODE", "CAMPAIGN", "DATA_REL",
                    "CHANNEL", "MODULE", "OUTPUT",
                    "RA_OBJ", "DEC_OBJ", "KEPMAG"]:
             meta[kw] = self.header(kw)
+        meta["cadences"] = self.fits[1].header["NAXIS2"]
         for kw in ["LC_START", "LC_END", "GAIN", "READNOIS", "MEANBLCK",
                    "CDPP3_0", "CDPP6_0", "CDPP12_0"]:
             meta[kw] = self.header(kw, ext=1)
@@ -112,7 +116,51 @@ def download_file(url, local_filename, chunksize=16*1024):
             f.write(chunk)
 
 
-def write_metadata_table(input_fn, output_fn, data_store=None):
+def get_metadata_row(url, header=False, data_store=DATA_STORE):
+    """
+    Parameters
+    ----------
+    data_store : str, optional
+        Path to a local directory where the contents of the
+        `archive.stsci.edu/pub/k2/target_pixel_files` are mirrored.
+        If `None` then all data will be downloaded.  (Default: None.) 
+    """
+    output = ""
+    url = url.strip()
+    # Ignore short cadence files?
+    if IGNORE_SHORT_CADENCE and "spd-targ" in url:
+        return
+    # Try opening the file and adding a csv row
+    try:
+        tmp_download = False
+        localpath = url.replace("http://archive.stsci.edu/missions/k2/target_pixel_files", DATA_STORE)
+        if os.path.exists(localpath):
+            path = localpath
+        else:
+            log.debug("Downloading {}".format(url))
+            path = os.path.join(TMPDIR, os.path.basename(url))
+            download_file(url, path)
+            tmp_download = True
+
+        log.debug("Reading {}".format(path))
+        tpf = TargetPixelFile(path, url=url)
+        if header:
+            output += tpf.get_csv_header() + "\n"
+        output += tpf.get_csv_row() + "\n"
+    except Exception as e:
+        log.error("{}: {}".format(url, e))
+    finally:
+        # Ensure the temporary file is deleted
+        if tmp_download:
+            log.debug("Removing {}".format(path))
+            try:
+                os.unlink(path)
+            except Exception as e:
+                log.error("Could not delete {}: {}".format(url, e))
+    return output
+
+
+def write_metadata_table(input_fn, output_fn):
     """
     Parameters
     ----------
@@ -123,48 +171,21 @@ def write_metadata_table(input_fn, output_fn, data_store=None):
     output_fn : str
         Path to the csv file that will be created.  If the file already exists,
         it will be overwritten.
-
-    data_store : str, optional
-        Path to a local directory where the contents of the
-        `archive.stsci.edu/pub/k2/target_pixel_files` are mirrored.
-        If `None` then all data will be downloaded.  (Default: None.) 
     """
     # Main routine: download target pixel fiels & produce the metadata table
     with open(output_fn, "w") as out:
         with open(input_fn, "r") as urls:
-            for idx, url in enumerate(urls.readlines()):
-                url = url.strip()
-                # Ignore short cadence files?
-                if IGNORE_SHORT_CADENCE and "spd-targ" in url:
-                    continue
-                # Try opening the file and adding a csv row
-                try:
-                    tmp_download = False
-                    if data_store:
-                        path = url.replace("http://archive.stsci.edu/missions/k2/target_pixel_files", data_store)
-                    else:
-                        log.debug("Downloading {}".format(url))
-                        path = os.path.join(TMPDIR, os.path.basename(url))
-                        download_file(url, path)
-                        tmp_download = True
-
-                    log.debug("Reading {}".format(path))
-                    tpf = TargetPixelFile(path, url=url)
-                    if idx == 0:
-                        out.write(tpf.get_csv_header() + "\n")
-                    out.write(tpf.get_csv_row() + "\n")
+            urls = urls.readlines()
+            with ProgressBar(len(urls)) as bar:
+                # Write the first file with a header
+                out.write(get_metadata_row(urls[0], header=True))
+                # Then process the others in parallel without header
+                p = multiprocessing.Pool()
+                for idx, result in enumerate(
+                    p.imap_unordered(get_metadata_row, urls[1:], chunksize=3)):
+                    bar.update(idx)
+                    out.write(result)
                     out.flush()
-                except Exception as e:
-                    log.error("{}: {}".format(url, e))
-                finally:
-                    # Ensure the temporary file is deleted
-                    if tmp_download:
-                        log.debug("Removing {}".format(path))
-                        try:
-                            os.unlink(path)
-                        except Exception as e:
-                            log.error("Could not delete {}: {}".format(url, e))
-    out.close()
 
 
 if __name__ == "__main__":
@@ -174,5 +195,5 @@ if __name__ == "__main__":
     else:
         campaign = int(sys.argv[1])
         input_fn = "intermediate-data/k2-c{:02d}-tpf-urls.txt".format(campaign)
-        output_fn = "intermediate-data/k2-c{:02d}-tpf-metadata.csv-tmp".format(campaign)
-        write_metadata_table(input_fn, output_fn, data_store=DATA_STORE)
+        output_fn = "intermediate-data/k2-c{:02d}-tpf-metadata.csv".format(campaign)
+        write_metadata_table(input_fn, output_fn)
