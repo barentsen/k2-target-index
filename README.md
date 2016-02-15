@@ -1,7 +1,56 @@
 # K2 Target Index
 
-***A user-friendly list of all the target pixel files and their properties.***
+***A user-friendly list of all the K2 target pixel files and their properties.***
 
-This repository provides a list of the filenames, urls, and properties
+This repository provides a list of the filenames, urls, and useful metadata 
 of all the K2 Target Pixel Files (TPF) that are available
 in the [data archive at MAST](https://archive.stsci.edu/pub/k2/target_pixel_files/).
+
+This index is intended to enable other software tools to query the properties and sky coverage of the K2 pixel data efficiently without requiring remote web queries.
+
+
+## Contents
+
+* `k2-target-pixel-files.csv`: a table of all target pixel files in CSV format. 
+* `k2-target-pixel-files.db`: a table of all target pixel files in SQLite format.
+
+
+## Columns
+
+The vast majority of the columns correspond directly to header keywords
+in the target pixel files.  Hence more information about their meaning
+can be found in the Kepler Instrument and Data Characteristics Handbooks.
+
+* `filename`: target pixel filename.
+* `url`: full HTTP URL of the target pixel file.
+* `filesize`: size of the target pixel file (MB). 
+* `object`: name of the target, i.e. `EPIC XXXXXXXXXX`.
+* `keplerid`: EPIC ID number.
+* `obsmode`: one of `long cadence` or `short cadence`.
+* `campaign`: K2 Campaign number, e.g. `1` or `2`.
+* `data_rel`: K2 data release number.
+* `channel`: focal plane channel number.
+* `module`: focal plane module number.
+* `output`: focal plane module output number.
+* `ra_obj`: Right Ascension of the target in the EPIC catalog (decimal degrees).
+* `dec_obj`: Declination of the target in the EPIC catalog (decimal degrees).
+* `kepmag`: Kepler magnitude of the target in the EPIC catalog.
+* `cadences`: total number of cadences recorded in the file.
+* `lc_start`: time of the first cadence.
+* `lc_stop`: time of the last cadence.
+* `gain`: detector gain.
+* `readnoise`: detector read noise.
+* `meanblck`: back ground estimate.
+* `cddp3_0`: 3-hour CDPP estimate.
+* `cddp6_0`: 6-hour CDPP estimate.
+* `cddp12_0`: 12-hour CDPP estimate.
+* `npix`: total number of pixels in the aperture mask.
+* `naxis1`: size of the aperture mask in one direction.
+* `naxis2`: size of the aperture mask in the other direction.
+* `crpix1`, `crpix2`, `crval1`, `crval2`, `cdelt1`, `cdelt2`, `pc1_1`, `pc1_2`, `pc2_1`, `pc2_2`, `crval1p`, `crval2p`: WCS keywords.
+
+
+## Authors
+
+Created by Geert Barentsen for the Kepler/K2 Guest Observer Office.
+Please get in touch to report feedback or useful applications.
