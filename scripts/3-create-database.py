@@ -2,7 +2,6 @@
 
 TODO
 ----
-* Sort the final table by EPIC ID.
 * Add an index to the sqlite table?
 """
 import glob
@@ -25,6 +24,7 @@ if __name__ == "__main__":
     df = pd.concat([pd.read_csv(fn)
                     for fn
                     in glob.glob("intermediate-data/*metadata.csv")])
+    df = df.sort_values("keplerid")
 
     # Write to the CSV file
     log.info("Writing {}".format(CSV_FILENAME))
