@@ -79,8 +79,6 @@ class TargetPixelFile(object):
                    "CHANNEL", "MODULE", "OUTPUT",
                    "RA_OBJ", "DEC_OBJ", "KEPMAG"]:
             meta[kw] = self.header(kw)
-        meta["cadenceno_start"] = self.fits[1].data["CADENCENO"][0]
-        meta["cadenceno_end"] = self.fits[1].data["CADENCENO"][-1]
         for kw in ["LC_START", "LC_END", "GAIN", "READNOIS", "MEANBLCK",
                    "CDPP3_0", "CDPP6_0", "CDPP12_0"]:
             meta[kw] = self.header(kw, ext=1)
