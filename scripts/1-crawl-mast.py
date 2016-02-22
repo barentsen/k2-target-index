@@ -5,6 +5,7 @@ Author: Geert Barentsen
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import sys
 import time
 import random
 import posixpath
@@ -98,9 +99,19 @@ class KeplerArchiveCrawler(object):
 
 
 # Main execution
-if __name__ == '__main__':
-    for campaign in [0]:
-        output_fn = 'intermediate-data/k2-c{:02d}-tpf-urls.txt'.format(campaign)
-        c = KeplerArchiveCrawler('http://archive.stsci.edu/missions/k2/'
-                                 'target_pixel_files/c{}'.format(campaign))
-        c.crawl(output_fn)
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        log.error("Provide the campaign number as the first and only argument.")
+        sys.exit(1)
+    else:
+        if sys.argv[1] == "all":
+            campaigns = range(0, 7)
+        else:
+            campaigns = [int(sys.argv[1])]
+
+        for campaign in campaigns:
+            log.info("Now crawling campaign {}".format(campaign))
+            output_fn = 'intermediate-data/k2-c{:02d}-tpf-urls.txt'.format(campaign)
+            c = KeplerArchiveCrawler('http://archive.stsci.edu/missions/k2/'
+                                     'target_pixel_files/c{}'.format(campaign))
+            c.crawl(output_fn)
