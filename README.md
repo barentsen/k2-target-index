@@ -11,7 +11,7 @@ This index is intended to enable other software tools to query the properties an
 
 ## Contents
 
-* `k2-target-pixel-files.csv`: a table of all target pixel files in CSV format. 
+* `k2-target-pixel-files.csv.gz`: a table of all target pixel files in gzipped CSV format. 
 * `k2-target-pixel-files.db`: a table of all target pixel files in SQLite format.
 
 
