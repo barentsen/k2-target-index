@@ -6,8 +6,6 @@ This repository provides a list of the filenames, urls, and useful metadata
 of all the K2 Target Pixel Files (TPF) that are available
 in the [data archive at MAST](https://archive.stsci.edu/pub/k2/target_pixel_files/).
 
-This index is intended to enable other software tools to query the properties and sky coverage of the K2 pixel data efficiently without requiring remote web queries.
-
 
 ## Contents
 
@@ -32,7 +30,7 @@ can be found in the Kepler Instrument and Data Characteristics Handbooks.
 * `channel`: focal plane channel number.
 * `module`: focal plane module number.
 * `output`: focal plane module output number.
-* `ra_obj`: Right Ascension of the target in the EPIC catalog (decimal degrees).
+* `ra_obj`: J2000 Right Ascension of the target in the EPIC catalog (decimal degrees).  This position is not corrected for proper motion and may hence fall outside the aperture mask.
 * `dec_obj`: Declination of the target in the EPIC catalog (decimal degrees).
 * `kepmag`: Kepler magnitude of the target in the EPIC catalog.
 * `cadences`: total number of cadences recorded in the file.
@@ -48,9 +46,11 @@ can be found in the Kepler Instrument and Data Characteristics Handbooks.
 * `naxis1`: size of the aperture mask in one direction.
 * `naxis2`: size of the aperture mask in the other direction.
 * `crpix1`, `crpix2`, `crval1`, `crval2`, `cdelt1`, `cdelt2`, `pc1_1`, `pc1_2`, `pc2_1`, `pc2_2`, `crval1p`, `crval2p`: WCS keywords.
+* `corners`: ra,dec;ra,dec;ra,dec;ra,dec of the mask corners in decimal degrees.
+* `ra_min`, `ra_max`, `dec_min`, `dec_max`: bounding box of the target mask in decimal degrees.
 
 
 ## Authors
 
-Created by Geert Barentsen for the Kepler/K2 Guest Observer Office.
+Created by Geert Barentsen at the Kepler/K2 Guest Observer Office.
 Please get in touch to report feedback or useful applications.
