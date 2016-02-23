@@ -55,10 +55,10 @@ def add_corners(df):
         # Bounding box in equatorial coordinates
         ra_min, ra_max = corners[0].min(), corners[0].max()
         dec_min, dec_max = corners[1].min(), corners[1].max()
-        col_ra_min.append(ra_min)
-        col_ra_max.append(ra_max)
-        col_dec_min.append(dec_min)
-        col_dec_max.append(dec_max)
+        col_ra_min.append("{:.6f}".format(ra_min))
+        col_ra_max.append("{:.6f}".format(ra_max))
+        col_dec_min.append("{:.6f}".format(dec_min))
+        col_dec_max.append("{:.6f}".format(dec_max))
     df['corners'] = col_corners
     df['ra_min'] = col_ra_min
     df['ra_max'] = col_ra_max
