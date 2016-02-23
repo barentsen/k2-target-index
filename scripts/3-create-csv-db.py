@@ -1,21 +1,14 @@
 """Augment and export CSV/SQLite files detailing all K2 target pixel files.
 """
+from astropy import wcs
 import glob
-import logging
+import pandas as pd
 import sqlite3
 from tqdm import tqdm
 
-import pandas as pd
 
-from astropy import wcs
-
-
-log = logging.getLogger(__name__)
-log.setLevel("INFO")
-
-# Output filenames
+# Output
 CSV_FILENAME = "../k2-target-pixel-files.csv.gz"
-SQLITE_FILENAME = "../k2-target-pixel-files.db"
 
 
 def create_wcs(row):
@@ -68,7 +61,7 @@ def add_corners(df):
 
 
 if __name__ == "__main__":
-    log.info("Reading the data")
+    print("Reading the data")
     df = pd.concat([pd.read_csv(fn)
                     for fn
                     in glob.glob("intermediate-data/*metadata.csv")])
@@ -76,10 +69,5 @@ if __name__ == "__main__":
     df = add_corners(df)
 
     # Write to the CSV file
-    log.info("Writing {}".format(CSV_FILENAME))
+    print("Writing {}".format(CSV_FILENAME))
     df.to_csv(CSV_FILENAME, index=False, compression="gzip")
-
-    # Write the SQLite table
-    log.info("Writing {}".format(SQLITE_FILENAME))
-    con = sqlite3.connect(SQLITE_FILENAME)
-    df.to_sql(name='tpf', con=con, if_exists='replace', index=False)

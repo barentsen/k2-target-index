@@ -10,7 +10,7 @@ in the [data archive at MAST](https://archive.stsci.edu/pub/k2/target_pixel_file
 ## Contents
 
 * `k2-target-pixel-files.csv.gz`: a table of all target pixel files in gzipped CSV format. 
-* `k2-target-pixel-files.db`: a table of all target pixel files in SQLite format.
+* `k2-target-pixel-files.db`: a subset of the columns in the CSV table in SQLite format.
 
 
 ## Columns
@@ -18,6 +18,8 @@ in the [data archive at MAST](https://archive.stsci.edu/pub/k2/target_pixel_file
 The vast majority of the columns correspond directly to header keywords
 in the target pixel files.  Hence more information about their meaning
 can be found in the Kepler Instrument and Data Characteristics Handbooks.
+
+Note that the SQLite file only contains a subset of these columns to keep its size small.
 
 * `filename`: target pixel filename.
 * `url`: full HTTP URL of the target pixel file.
