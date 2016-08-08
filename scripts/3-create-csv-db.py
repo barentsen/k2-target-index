@@ -1,4 +1,7 @@
-"""Augment and export CSV/SQLite files detailing all K2 target pixel files.
+"""Export tables in CSV and HDF5 format listing all K2 target pixel files.
+
+This script will also augment the information extracted from the TPF files
+with columns detailing the coordinates of the corners of each TPF mask.
 """
 from astropy import wcs
 import glob
@@ -7,12 +10,22 @@ import sqlite3
 from tqdm import tqdm
 
 
-# Output
+# Output filenames
 CSV_FILENAME = "../k2-target-pixel-files.csv.gz"
+HDF_FILENAME = "../k2-target-pixel-files.h5"
 
 
 def create_wcs(row):
-    """Returns a `astropy.wcs.WCS` instance for a target mask given its row."""
+    """Returns a `astropy.wcs.WCS` instance for a TPF given its target index metadata.
+    
+    Parameters
+    ----------
+    rows : dict-like object containing the WCS keywords
+
+    Returns
+    -------
+    `astropy.wcs.WCS` object
+    """
     # First we create a WCS object from the metadata
     metadata = {}
     metadata['CTYPE1'] = 'RA---TAN'
@@ -37,7 +50,7 @@ def mask_corners(row):
 
 
 def add_corners(df):
-    """Adds corner columns to the target index dataframe."""
+    """Adds corner coordinate columns to the target index dataframe."""
     col_corners, col_ra_min, col_ra_max, col_dec_min, col_dec_max = [], [], [], [], []
     for idx, row in tqdm(df.iterrows(), desc="Adding corner coordinates", total=len(df)):
         corners = mask_corners(row)
@@ -71,3 +84,5 @@ if __name__ == "__main__":
     # Write to the CSV file
     print("Writing {}".format(CSV_FILENAME))
     df.to_csv(CSV_FILENAME, index=False, compression="gzip")
+    df.to_hdf(HDF_FILENAME, index=False)
+
