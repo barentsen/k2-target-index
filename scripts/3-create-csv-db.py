@@ -84,5 +84,7 @@ if __name__ == "__main__":
     # Write to the CSV file
     print("Writing {}".format(CSV_FILENAME))
     df.to_csv(CSV_FILENAME, index=False, compression="gzip")
-    df.to_hdf(HDF_FILENAME, index=False)
+    # Write the HDF5 file
+    print("Writing {}".format(HDF_FILENAME))
+    df.to_hdf(HDF_FILENAME, index=False, key='tpf')
 
