@@ -86,5 +86,6 @@ if __name__ == "__main__":
     df.to_csv(CSV_FILENAME, index=False, compression="gzip")
     # Write the HDF5 file
     print("Writing {}".format(HDF_FILENAME))
-    df.to_hdf(HDF_FILENAME, index=False, key='tpf')
+    df.to_hdf(HDF_FILENAME, index=False, key='tpf', mode='w',
+              complib='zlib', complevel=7)
 
