@@ -3,6 +3,7 @@ import sqlite3
 
 KEPLER_PIXEL_SIZE = 3.98  # arcsec
 KEPLER_PIXEL_AREA = (KEPLER_PIXEL_SIZE * KEPLER_PIXEL_SIZE) / (60**4)  # deg^2
+CAMPAIGNS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 91, 92]
 
 db_connection = sqlite3.connect("../k2-target-pixel-files.db")
 cursor = db_connection.cursor()
@@ -26,6 +27,6 @@ def print_summary(campaign='all', obsmode='long cadence'):
 
 if __name__ == "__main__":
     for obsmode in ["short cadence", "long cadence"]:
-        for campaign in range(0, 7):
+        for campaign in CAMPAIGNS:
             print_summary(campaign, obsmode)
         print_summary(campaign='all', obsmode=obsmode)
