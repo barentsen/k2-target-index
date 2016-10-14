@@ -21,7 +21,7 @@ def print_summary(campaign='all', obsmode='long cadence'):
     res = query(sql)
     ntpf, npix, filesize_gb = res
     square_degrees = npix * KEPLER_PIXEL_AREA
-    print("C{} {}: {} masks, {:.1f} Mpix, {:.1f} deg^2, {:.0f} GB".format(campaign, obsmode, ntpf, npix/1e6, square_degrees, filesize_gb))
+    print("C{} {}: {} masks, {:.3f} Mpix, {:.1f} deg^2, {:.0f} GB".format(campaign, obsmode, ntpf, npix/1e6, square_degrees, filesize_gb))
 
 
 if __name__ == "__main__":
