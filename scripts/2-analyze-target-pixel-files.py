@@ -23,7 +23,7 @@ log.setLevel("INFO")
 # Configuration constants
 # Local directory containing a mirror of MAST TPF files:
 DATA_STORE = "/media/gb/kdata/k2/target_pixel_files"
-TMPDIR = "/tmp/"   # Location to download temporary files from MAST if needed
+TMPDIR = "/data/tmp/"   # Location to download temporary files from MAST if needed
 MAX_ATTEMPTS = 50  # How many times do we try to obtain & open a file?
 SLEEP_BETWEEN_ATTEMPTS = 30  # seconds
 IGNORE_SHORT_CADENCE = False
@@ -132,7 +132,7 @@ def get_metadata_row(url, header=False, data_store=DATA_STORE):
     url = url.strip()
     # Ignore short cadence files?
     if IGNORE_SHORT_CADENCE and "spd-targ" in url:
-        return
+        return None
     # Try opening the file and adding a csv row
     try:
         tmp_download = False
@@ -187,8 +187,9 @@ def write_metadata_table(input_fn, output_fn):
                 for idx, result in enumerate(
                     p.imap_unordered(get_metadata_row, urls[1:], chunksize=3)):
                     bar.update(idx)
-                    out.write(result)
-                    out.flush()
+                    if result is not None:
+                        out.write(result)
+                        out.flush()
 
 
 if __name__ == "__main__":
